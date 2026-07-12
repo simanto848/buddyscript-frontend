@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAxios } from '../../lib/api';
+import { formatTimeAgo } from '../../lib/time';
 import axios from 'axios';
 
 interface UserInfo {
@@ -182,7 +183,7 @@ export default function PostCard({
             <div className="_feed_inner_timeline_post_box_txt">
               <h4 className="_feed_inner_timeline_post_box_title">{name}</h4>
               <p className="_feed_inner_timeline_post_box_para">
-                {time} . <span style={{ textTransform: 'capitalize' }}>{visibility}</span>
+                {formatTimeAgo(time)} . <span style={{ textTransform: 'capitalize' }}>{visibility}</span>
               </p>
             </div>
           </div>
@@ -359,7 +360,7 @@ export default function PostCard({
                             Reply
                           </button>
                           <span style={{ color: '#ccc' }}>
-                            {new Date(comment.createdAt).toLocaleDateString()}
+                            {formatTimeAgo(comment.createdAt)}
                           </span>
                         </div>
 
@@ -397,7 +398,7 @@ export default function PostCard({
                                     Like ({reply.likes.length})
                                   </button>
                                   <span style={{ color: '#ccc' }}>
-                                    {new Date(reply.createdAt).toLocaleDateString()}
+                                    {formatTimeAgo(reply.createdAt)}
                                   </span>
                                 </div>
 

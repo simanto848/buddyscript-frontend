@@ -380,7 +380,7 @@ export default function FeedPage() {
                         postId={post._id}
                         avatar={post.author.avatar || '/images/profile.png'}
                         name={`${post.author.firstName} ${post.author.lastName}`}
-                        time={new Date(post.createdAt).toLocaleDateString()}
+                        time={post.createdAt}
                         title={post.text}
                         postImage={post.image}
                         likesList={post.likes}
