@@ -1,18 +1,26 @@
 import axios from 'axios';
-import { cookies } from 'next/headers';
 
 /**
- * Create an authenticated API instance for server-side requests
- * This should be used in server components and server actions
+ * Create an authenticated API instance for requests (both client and server side)
  */
 export async function useAxios(token?: string) {
   let authToken = token;
 
-  try {
-    const cookieStore = await cookies();
-    authToken = token || cookieStore.get('token')?.value;
-  } catch (e) {
-    // cookies() might throw if called outside a Server context
+  if (typeof window === 'undefined') {
+    try {
+      const { cookies } = await import('next/headers');
+      const cookieStore = await cookies();
+      authToken = token || cookieStore.get('token')?.value;
+    } catch (e) {
+      // cookies() might throw if called outside a Server context
+    }
+  } else {
+    try {
+      const match = document.cookie.match(/(^|;)\s*token\s*=\s*([^;]+)/);
+      authToken = token || (match ? decodeURIComponent(match[2]) : undefined);
+    } catch (e) {
+      // Fallback
+    }
   }
 
   const headers: Record<string, string> = {
@@ -22,7 +30,7 @@ export async function useAxios(token?: string) {
   };
 
   const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:5001/api',
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001/api',
     timeout: 30000,
     headers,
     withCredentials: true,
