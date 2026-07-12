@@ -54,6 +54,7 @@ export default function FeedPage() {
       if (userRes.success) {
         setCurrentUser(userRes.data.user);
       } else {
+        document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
         router.push('/login');
         return;
       }
@@ -65,6 +66,7 @@ export default function FeedPage() {
       }
     } catch (error) {
       console.error('Failed to fetch initial feed data:', error);
+      document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       router.push('/login');
     } finally {
       setLoading(false);

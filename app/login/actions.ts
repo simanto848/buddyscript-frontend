@@ -31,3 +31,14 @@ export async function loginAction(payload: any) {
     return { success: false, error: errorMessage };
   }
 }
+
+export async function logoutAction() {
+  try {
+    const cookieStore = await cookies();
+    cookieStore.delete('token');
+    return { success: true };
+  } catch (error) {
+    console.error('Logout error:', error);
+    return { success: false };
+  }
+}

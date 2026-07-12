@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useTheme } from './ThemeContext';
 import { useAxios } from '../../lib/api';
+import { logoutAction } from '../login/actions';
 
 interface UserInfo {
   firstName: string;
@@ -33,8 +34,8 @@ export default function Navbar() {
     fetchUser();
   }, []);
 
-  const handleLogout = () => {
-    document.cookie = 'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+  const handleLogout = async () => {
+    await logoutAction();
     window.location.href = '/login';
   };
 
