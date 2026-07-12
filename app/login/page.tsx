@@ -2,16 +2,37 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AuthLayout from '../components/AuthLayout';
 import InputField from '../components/InputField';
+import { loginAction } from './actions';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Login submitted:', { email, password });
+    setError(null);
+    setLoading(true);
+
+    try {
+      const res = await loginAction({ email, password });
+      if (!res.success) {
+        setError(res.error || 'Login failed. Please check your credentials.');
+      } else {
+        // Successful login, redirect to feed
+        router.push('/');
+        router.refresh();
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -28,6 +49,13 @@ export default function LoginPage() {
         <div className="_social_login_content_bottom_txt _mar_b40">
           <span>Or</span>
         </div>
+
+        {error && (
+          <div className="alert alert-danger" style={{ color: 'red', marginBottom: '20px' }}>
+            {error}
+          </div>
+        )}
+
         <form className="_social_login_form" onSubmit={handleSubmit}>
           <div className="row">
             <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
@@ -75,8 +103,8 @@ export default function LoginPage() {
           <div className="row">
             <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
               <div className="_social_login_form_btn _mar_t40 _mar_b60">
-                <button type="submit" className="_social_login_form_btn_link _btn1">
-                  Login now
+                <button type="submit" className="_social_login_form_btn_link _btn1" disabled={loading}>
+                  {loading ? 'Logging in...' : 'Login now'}
                 </button>
               </div>
             </div>

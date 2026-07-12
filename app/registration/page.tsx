@@ -2,22 +2,52 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import AuthLayout from '../components/AuthLayout';
 import InputField from '../components/InputField';
+import { registerAction } from './actions';
 
 export default function RegistrationPage() {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
   const [agree, setAgree] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (password !== repeatPassword) {
-      alert("Passwords don't match!");
+      setError("Passwords don't match!");
       return;
     }
-    console.log('Registration submitted:', { email, password, agree });
+
+    if (!agree) {
+      setError("You must agree to the terms and conditions.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await registerAction({ firstName, lastName, email, password });
+      if (!res.success) {
+        setError(res.error || 'Registration failed.');
+      } else {
+        // Redirect to feed
+        router.push('/');
+        router.refresh();
+      }
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -34,8 +64,35 @@ export default function RegistrationPage() {
         <div className="_social_registration_content_bottom_txt _mar_b40">
           <span>Or</span>
         </div>
+
+        {error && (
+          <div className="alert alert-danger" style={{ color: 'red', marginBottom: '20px' }}>
+            {error}
+          </div>
+        )}
+
         <form className="_social_registration_form" onSubmit={handleSubmit}>
           <div className="row">
+            <div className="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+              <InputField
+                label="First Name"
+                type="text"
+                isLogin={false}
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="col-xl-6 col-lg-6 col-md-6 col-sm-12">
+              <InputField
+                label="Last Name"
+                type="text"
+                isLogin={false}
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                required
+              />
+            </div>
             <div className="col-xl-12 col-lg-12 col-md-12 col-sm-12">
               <InputField
                 label="Email"
@@ -87,8 +144,8 @@ export default function RegistrationPage() {
           <div className="row">
             <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
               <div className="_social_registration_form_btn _mar_t40 _mar_b60">
-                <button type="submit" className="_social_registration_form_btn_link _btn1">
-                  Register now
+                <button type="submit" className="_social_registration_form_btn_link _btn1" disabled={loading}>
+                  {loading ? 'Registering...' : 'Register now'}
                 </button>
               </div>
             </div>
