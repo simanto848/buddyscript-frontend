@@ -69,6 +69,7 @@ export default function PostCard({
   const [newComment, setNewComment] = useState('');
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
+  const [openCommentMenuId, setOpenCommentMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(title);
 
@@ -157,6 +158,32 @@ export default function PostCard({
       }
     } catch (error) {
       console.error('Failed to toggle reply like:', error);
+    }
+  };
+
+  const handleCommentDelete = async (commentId: string) => {
+    if (!confirm('Are you sure you want to delete this comment?')) return;
+    try {
+      const api = await useAxios();
+      const res: any = await api.delete(`/comments/${commentId}`);
+      if (res.success) {
+        await loadComments();
+      }
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+    }
+  };
+
+  const handleReplyDelete = async (replyId: string) => {
+    if (!confirm('Are you sure you want to delete this reply?')) return;
+    try {
+      const api = await useAxios();
+      const res: any = await api.delete(`/replies/${replyId}`);
+      if (res.success) {
+        await loadComments();
+      }
+    } catch (error) {
+      console.error('Failed to delete reply:', error);
     }
   };
 
@@ -483,7 +510,7 @@ export default function PostCard({
                       </div>
                       <div className="_comment_area">
                         <div className="_comment_details">
-                          <div className="_comment_details_top">
+                          <div className="_comment_details_top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <div className="_comment_name">
                               <Link href="#">
                                 <h4 className="_comment_name_title">
@@ -491,6 +518,52 @@ export default function PostCard({
                                 </h4>
                               </Link>
                             </div>
+                            {(comment.author._id === currentUserId || authorId === currentUserId) && (
+                              <div style={{ position: 'relative' }}>
+                                <button
+                                  type="button"
+                                  onClick={() => setOpenCommentMenuId(openCommentMenuId === comment._id ? null : comment._id)}
+                                  style={{ background: 'none', border: 'none', padding: '0 4px', cursor: 'pointer', opacity: 0.6 }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                                  </svg>
+                                </button>
+                                {openCommentMenuId === comment._id && (
+                                  <div style={{
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: '20px',
+                                    background: '#fff',
+                                    border: '1px solid #ddd',
+                                    borderRadius: '6px',
+                                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                    zIndex: 100,
+                                    minWidth: '100px'
+                                  }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        handleCommentDelete(comment._id);
+                                        setOpenCommentMenuId(null);
+                                      }}
+                                      style={{
+                                        width: '100%',
+                                        padding: '8px 12px',
+                                        background: 'none',
+                                        border: 'none',
+                                        textAlign: 'left',
+                                        fontSize: '12px',
+                                        color: '#FF4D4F',
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      Delete
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                           <div className="_comment_status">
                             <p className="_comment_status_text">
@@ -533,12 +606,12 @@ export default function PostCard({
                                 </li>
                                 <li>
                                   <span style={{ cursor: 'pointer' }}>
-                                    Share
+                                    Share.
                                   </span>
                                 </li>
                                 <li>
                                   <span className="_time_link">
-                                    .{formatTimeAgo(comment.createdAt)}
+                                    {formatTimeAgo(comment.createdAt)}
                                   </span>
                                 </li>
                               </ul>
@@ -565,7 +638,7 @@ export default function PostCard({
                           </div>
                           <div className="_comment_area">
                             <div className="_comment_details">
-                              <div className="_comment_details_top">
+                               <div className="_comment_details_top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                 <div className="_comment_name">
                                   <Link href="#">
                                     <h4 className="_comment_name_title" style={{ fontSize: '13px' }}>
@@ -573,6 +646,52 @@ export default function PostCard({
                                     </h4>
                                   </Link>
                                 </div>
+                                {(reply.author._id === currentUserId || authorId === currentUserId) && (
+                                  <div style={{ position: 'relative' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setOpenCommentMenuId(openCommentMenuId === reply._id ? null : reply._id)}
+                                      style={{ background: 'none', border: 'none', padding: '0 4px', cursor: 'pointer', opacity: 0.6 }}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M3 9.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zm5 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z"/>
+                                      </svg>
+                                    </button>
+                                    {openCommentMenuId === reply._id && (
+                                      <div style={{
+                                        position: 'absolute',
+                                        right: 0,
+                                        top: '20px',
+                                        background: '#fff',
+                                        border: '1px solid #ddd',
+                                        borderRadius: '6px',
+                                        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                                        zIndex: 100,
+                                        minWidth: '100px'
+                                      }}>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            handleReplyDelete(reply._id);
+                                            setOpenCommentMenuId(null);
+                                          }}
+                                          style={{
+                                            width: '100%',
+                                            padding: '8px 12px',
+                                            background: 'none',
+                                            border: 'none',
+                                            textAlign: 'left',
+                                            fontSize: '12px',
+                                            color: '#FF4D4F',
+                                            cursor: 'pointer'
+                                          }}
+                                        >
+                                          Delete
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
                               </div>
                               <div className="_comment_status">
                                 <p className="_comment_status_text" style={{ fontSize: '13px' }}>
@@ -612,12 +731,12 @@ export default function PostCard({
                                     </li>
                                     <li>
                                       <span style={{ cursor: 'pointer', fontSize: '11px' }}>
-                                        Share
+                                        Share.
                                       </span>
                                     </li>
                                     <li>
                                       <span className="_time_link" style={{ fontSize: '11px' }}>
-                                        .{formatTimeAgo(reply.createdAt)}
+                                        {formatTimeAgo(reply.createdAt)}
                                       </span>
                                     </li>
                                   </ul>
