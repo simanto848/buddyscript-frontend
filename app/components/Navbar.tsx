@@ -159,7 +159,7 @@ export default function Navbar() {
                 <div
                   id="_prfoile_drop"
                   className="_nav_profile_dropdown _profile_dropdown show"
-                  style={{ display: 'block', position: 'absolute', right: 0, top: '55px', zIndex: 100 }}
+                  style={{ display: 'block', zIndex: 100 }}
                 >
                   <div className="_nav_profile_dropdown_info">
                     <div className="_nav_profile_dropdown_image">
