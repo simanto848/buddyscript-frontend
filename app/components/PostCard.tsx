@@ -34,6 +34,14 @@ interface Comment {
   createdAt: string;
 }
 
+interface SharedFromPost {
+  _id: string;
+  author: UserInfo;
+  text: string;
+  image?: string;
+  createdAt: string;
+}
+
 interface PostCardProps {
   postId: string;
   avatar?: string;
@@ -50,7 +58,10 @@ interface PostCardProps {
   currentUserFirstName?: string;
   currentUserLastName?: string;
   authorId: string;
+  sharesCount?: number;
+  sharedFrom?: SharedFromPost;
   onPostDeleted?: (deletedPostId: string) => void;
+  onPostShared?: (newPost: any) => void;
 }
 
 export default function PostCard({
@@ -69,7 +80,10 @@ export default function PostCard({
   currentUserFirstName,
   currentUserLastName,
   authorId,
-  onPostDeleted
+  sharesCount = 0,
+  sharedFrom,
+  onPostDeleted,
+  onPostShared
 }: PostCardProps) {
   const { darkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -87,6 +101,10 @@ export default function PostCard({
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(title);
   const [editedVisibility, setEditedVisibility] = useState(visibility);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareText, setShareText] = useState('');
+  const [isSharing, setIsSharing] = useState(false);
+  const [localSharesCount, setLocalSharesCount] = useState(sharesCount);
 
   const hasLiked = currentUserId ? likes.some(user => user._id === currentUserId) : false;
 
@@ -226,6 +244,26 @@ export default function PostCard({
       }
     } catch (error) {
       console.error('Failed to update post:', error);
+    }
+  };
+
+  const handleSharePost = async () => {
+    setIsSharing(true);
+    try {
+      const api = await useAxios();
+      const res: any = await api.post(`/posts/${postId}/share`, { text: shareText });
+      if (res.success) {
+        setLocalSharesCount(prev => prev + 1);
+        setShowShareModal(false);
+        setShareText('');
+        if (onPostShared) {
+          onPostShared(res.data);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to share post:', error);
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -387,6 +425,46 @@ export default function PostCard({
         ) : (
           <h4 className="_feed_inner_timeline_post_title" style={{ fontWeight: 'normal', whiteSpace: 'pre-wrap' }}>{title}</h4>
         )}
+        {/* Shared Original Post Embed */}
+        {sharedFrom && (
+          <div style={{
+            margin: '14px 0',
+            border: `1px solid ${darkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}`,
+            borderRadius: '12px',
+            overflow: 'hidden',
+            background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)',
+          }}>
+            <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <Avatar
+                avatarUrl={sharedFrom.author?.avatar}
+                firstName={sharedFrom.author?.firstName}
+                lastName={sharedFrom.author?.lastName}
+                size="34px"
+                fontSize="12px"
+              />
+              <div>
+                <p style={{ margin: 0, fontWeight: 600, fontSize: '13px', lineHeight: 1.3 }}>
+                  {sharedFrom.author?.firstName} {sharedFrom.author?.lastName}
+                </p>
+                <p style={{ margin: 0, fontSize: '11px', opacity: 0.6 }}>
+                  {formatTimeAgo(sharedFrom.createdAt)}
+                </p>
+              </div>
+            </div>
+            {sharedFrom.text && (
+              <p style={{ margin: 0, padding: '0 16px 12px', fontSize: '14px', whiteSpace: 'pre-wrap' }}>
+                {sharedFrom.text}
+              </p>
+            )}
+            {sharedFrom.image && (
+              <img
+                src={sharedFrom.image}
+                alt="Shared post"
+                style={{ width: '100%', maxHeight: '400px', objectFit: 'cover' }}
+              />
+            )}
+          </div>
+        )}
         {postImage && (
           <div className="_feed_inner_timeline_image" style={{ marginTop: '14px' }}>
             <img src={postImage} alt="Post media" className="_time_img" style={{ width: '100%', borderRadius: '6px', maxHeight: '500px', objectFit: 'cover' }} />
@@ -448,7 +526,7 @@ export default function PostCard({
             </button>
           </p>
           <p className="_feed_inner_timeline_total_reacts_para2">
-            <span>0</span> Share
+            <span>{localSharesCount}</span> Share
           </p>
         </div>
       </div>
@@ -482,7 +560,7 @@ export default function PostCard({
             </span>
           </span>
         </button>
-        <button className="_feed_inner_timeline_reaction_share _feed_reaction">
+        <button className="_feed_inner_timeline_reaction_share _feed_reaction" onClick={() => setShowShareModal(true)}>
           <span className="_feed_inner_timeline_reaction_link">
             <span>
               <svg className="_reaction_svg" xmlns="http://www.w3.org/2000/svg" width="24" height="21" fill="none" viewBox="0 0 24 21">
@@ -928,6 +1006,161 @@ export default function PostCard({
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Share Modal */}
+      {showShareModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(6px)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+        }} onClick={() => setShowShareModal(false)}>
+          <div style={{
+            background: darkMode ? '#1e1e2e' : '#ffffff',
+            borderRadius: '16px',
+            width: '95%',
+            maxWidth: '520px',
+            maxHeight: '85vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
+            padding: '0',
+          }} onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '18px 24px',
+              borderBottom: `1px solid ${darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)'}`,
+            }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700 }}>Share Post</h3>
+              <button
+                onClick={() => setShowShareModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '22px',
+                  cursor: 'pointer',
+                  color: darkMode ? '#aaa' : '#666',
+                  padding: '4px 8px',
+                  borderRadius: '50%',
+                  transition: 'background 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.06)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'none')}
+              >✕</button>
+            </div>
+
+            {/* User Info & Text Input */}
+            <div style={{ padding: '18px 24px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <Avatar avatarUrl={currentUserAvatar} firstName={currentUserFirstName} lastName={currentUserLastName} size="40px" />
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: '14px' }}>
+                    {currentUserFirstName} {currentUserLastName}
+                  </p>
+                  <p style={{ margin: 0, fontSize: '11px', opacity: 0.6 }}>Sharing to feed</p>
+                </div>
+              </div>
+              <textarea
+                placeholder="Say something about this post..."
+                value={shareText}
+                onChange={(e) => setShareText(e.target.value)}
+                rows={3}
+                style={{
+                  width: '100%',
+                  resize: 'none',
+                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'}`,
+                  borderRadius: '10px',
+                  padding: '12px 14px',
+                  fontSize: '14px',
+                  background: darkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)',
+                  color: 'inherit',
+                  outline: 'none',
+                  fontFamily: 'inherit',
+                }}
+                onFocus={(e) => (e.target.style.borderColor = '#6C63FF')}
+                onBlur={(e) => (e.target.style.borderColor = darkMode ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)')}
+              />
+            </div>
+
+            {/* Post Preview */}
+            <div style={{
+              margin: '0 24px 18px',
+              border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+              borderRadius: '12px',
+              overflow: 'hidden',
+              background: darkMode ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.015)',
+            }}>
+              <div style={{ padding: '12px 14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Avatar avatarUrl={avatar} firstName={authorFirstName || name.split(' ')[0]} lastName={authorLastName || name.split(' ')[1]} size="30px" fontSize="10px" />
+                <div>
+                  <p style={{ margin: 0, fontWeight: 600, fontSize: '12px', lineHeight: 1.3 }}>{name}</p>
+                  <p style={{ margin: 0, fontSize: '10px', opacity: 0.5 }}>{formatTimeAgo(time)}</p>
+                </div>
+              </div>
+              {title && (
+                <p style={{ margin: 0, padding: '0 14px 10px', fontSize: '13px', whiteSpace: 'pre-wrap', opacity: 0.85, lineHeight: 1.5 }}>
+                  {title.length > 200 ? title.substring(0, 200) + '...' : title}
+                </p>
+              )}
+              {postImage && (
+                <img src={postImage} alt="Post preview" style={{ width: '100%', maxHeight: '200px', objectFit: 'cover' }} />
+              )}
+            </div>
+
+            {/* Actions */}
+            <div style={{
+              padding: '14px 24px 20px',
+              display: 'flex',
+              gap: '10px',
+              justifyContent: 'flex-end',
+              borderTop: `1px solid ${darkMode ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'}`,
+            }}>
+              <button
+                onClick={() => setShowShareModal(false)}
+                style={{
+                  padding: '10px 24px',
+                  borderRadius: '10px',
+                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.15)'}`,
+                  background: 'transparent',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  transition: 'all 0.2s',
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = darkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.04)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+              >Cancel</button>
+              <button
+                onClick={handleSharePost}
+                disabled={isSharing}
+                style={{
+                  padding: '10px 32px',
+                  borderRadius: '10px',
+                  border: 'none',
+                  background: isSharing ? '#999' : 'linear-gradient(135deg, #6C63FF, #4834d4)',
+                  color: '#fff',
+                  cursor: isSharing ? 'not-allowed' : 'pointer',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  transition: 'all 0.2s',
+                  boxShadow: '0 4px 12px rgba(108, 99, 255, 0.3)',
+                }}
+                onMouseEnter={(e) => { if (!isSharing) e.currentTarget.style.transform = 'translateY(-1px)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+              >{isSharing ? 'Sharing...' : 'Share Now'}</button>
             </div>
           </div>
         </div>

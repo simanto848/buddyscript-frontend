@@ -26,6 +26,14 @@ interface Post {
   image?: string;
   visibility: string;
   likes: UserInfo[];
+  shares: number;
+  sharedFrom?: {
+    _id: string;
+    author: UserInfo;
+    text: string;
+    image?: string;
+    createdAt: string;
+  };
   createdAt: string;
 }
 
@@ -125,6 +133,10 @@ export default function FeedPage() {
 
   const handlePostDeleted = (deletedPostId: string) => {
     setPosts(prev => prev.filter(p => p._id !== deletedPostId));
+  };
+
+  const handlePostShared = (newPost: Post) => {
+    setPosts(prev => [newPost, ...prev]);
   };
 
   if (loading) {
@@ -441,7 +453,10 @@ export default function FeedPage() {
                         currentUserFirstName={currentUser?.firstName}
                         currentUserLastName={currentUser?.lastName}
                         authorId={post.author._id}
+                        sharesCount={post.shares || 0}
+                        sharedFrom={post.sharedFrom}
                         onPostDeleted={handlePostDeleted}
+                        onPostShared={handlePostShared}
                       />
                     ))}
                   </div>
