@@ -383,38 +383,50 @@ export default function PostCard({
         )}
       </div>
       <div className="_feed_inner_timeline_total_reacts _padd_r24 _padd_l24 _mar_b26" style={{ position: 'relative' }}>
-        <div 
-          className="_feed_inner_timeline_total_reacts_image" 
-          style={{ cursor: 'pointer' }}
-          onMouseEnter={() => setShowLikesHover(true)}
-          onMouseLeave={() => setShowLikesHover(false)}
-          onClick={() => setShowLikesModal(true)}
-        >
-          <img src="/images/react_img1.png" alt="React Icon" className="_react_img1" />
-          <img src="/images/react_img2.png" alt="React Icon" className="_react_img" />
-          <img src="/images/react_img3.png" alt="React Icon" className="_react_img _rect_img_mbl_none" />
-          <img src="/images/react_img4.png" alt="React Icon" className="_react_img _rect_img_mbl_none" />
-          <img src="/images/react_img5.png" alt="React Icon" className="_react_img _rect_img_mbl_none" />
-          <p className="_feed_inner_timeline_total_reacts_para">{likes.length > 0 ? `${likes.length}+` : '0'}</p>
-          {showLikesHover && likes.length > 0 && (
-            <div style={{
-              position: 'absolute',
-              bottom: '25px',
-              left: '24px',
-              background: '#333',
-              color: '#fff',
-              padding: '6px 12px',
-              borderRadius: '4px',
-              fontSize: '11px',
-              zIndex: 100,
-              maxWidth: '250px',
-              whiteSpace: 'normal',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-            }}>
-              {renderLikeTooltip(likes)}
-            </div>
-          )}
-        </div>
+        {likes.length > 0 ? (
+          <div 
+            className="_feed_inner_timeline_total_reacts_image" 
+            style={{ cursor: 'pointer' }}
+            onMouseEnter={() => setShowLikesHover(true)}
+            onMouseLeave={() => setShowLikesHover(false)}
+            onClick={() => setShowLikesModal(true)}
+          >
+            {likes.slice(0, 5).map((user, index) => {
+              const isFirst = index === 0;
+              const imgClass = isFirst ? '_react_img1' : '_react_img';
+              return (
+                <img
+                  key={user._id}
+                  src={user.avatar || '/images/profile.png'}
+                  alt={`${user.firstName} ${user.lastName}`}
+                  className={imgClass}
+                  style={{ borderRadius: '50%', objectFit: 'cover', width: '18px', height: '18px' }}
+                />
+              );
+            })}
+            <p className="_feed_inner_timeline_total_reacts_para">{likes.length}</p>
+            {showLikesHover && (
+              <div style={{
+                position: 'absolute',
+                bottom: '25px',
+                left: '24px',
+                background: '#333',
+                color: '#fff',
+                padding: '6px 12px',
+                borderRadius: '4px',
+                fontSize: '11px',
+                zIndex: 100,
+                maxWidth: '250px',
+                whiteSpace: 'normal',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+              }}>
+                {renderLikeTooltip(likes)}
+              </div>
+            )}
+          </div>
+        ) : (
+          <div />
+        )}
         <div className="_feed_inner_timeline_total_reacts_txt">
           <p className="_feed_inner_timeline_total_reacts_para1">
             <button 
