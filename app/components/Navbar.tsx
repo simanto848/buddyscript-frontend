@@ -90,13 +90,13 @@ export default function Navbar() {
                   </svg>
                   <span className="_counting">6</span>
                 </span>
-                
+
                 {/* Notifications Dropdown */}
                 <div id="_notify_drop" className={`_notification_dropdown ${showNotifyDrop ? 'show' : ''}`} style={{ display: showNotifyDrop ? 'block' : 'none' }}>
                   <div className="_notifications_content">
                     <h4 className="_notifications_content_title">Notifications</h4>
                     <div className="_notification_box_right">
-                       <button type="button" className="_notification_box_right_link">
+                      <button type="button" className="_notification_box_right_link">
                         <svg xmlns="http://www.w3.org/2000/svg" width="4" height="17" fill="none" viewBox="0 0 4 17">
                           <circle cx="2" cy="2" r="2" fill="#C4C4C4"></circle>
                           <circle cx="2" cy="8" r="2" fill="#C4C4C4"></circle>
@@ -137,7 +137,7 @@ export default function Navbar() {
                 </Link>
               </li>
             </ul>
-            
+
             <div className="_header_nav_profile" style={{ position: 'relative' }}>
               <div className="_header_nav_profile_image" style={{ cursor: 'pointer', width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', display: 'block', margin: '0 8px 0 0' }} onClick={() => setShowProfileDrop(!showProfileDrop)}>
                 <Avatar avatarUrl={currentUser?.avatar} firstName={currentUser?.firstName} lastName={currentUser?.lastName} size="38px" fontSize="13px" />
