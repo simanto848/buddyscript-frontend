@@ -7,6 +7,7 @@ import Navbar from './components/Navbar';
 import SidebarLeft from './components/SidebarLeft';
 import SidebarRight from './components/SidebarRight';
 import PostCard from './components/PostCard';
+import Avatar from './components/Avatar';
 import { useTheme } from './components/ThemeContext';
 import { useAxios } from '../lib/api';
 
@@ -293,8 +294,8 @@ export default function FeedPage() {
                           <option value="private">🔒 Private</option>
                         </select>
                         <div className="_feed_inner_text_area_box">
-                          <div className="_feed_inner_text_area_box_image">
-                            <img src={currentUser?.avatar || '/images/txt_img.png'} alt="User Profile" className="_txt_img" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }} />
+                          <div className="_feed_inner_text_area_box_image" style={{ width: '42px', height: '42px' }}>
+                            <Avatar avatarUrl={currentUser?.avatar} firstName={currentUser?.firstName} lastName={currentUser?.lastName} size="42px" />
                           </div>
                           <div className="form-floating _feed_inner_text_area_box_form ">
                             <textarea
@@ -426,8 +427,10 @@ export default function FeedPage() {
                       <PostCard
                         key={post._id}
                         postId={post._id}
-                        avatar={post.author.avatar || '/images/profile.png'}
+                        avatar={post.author.avatar}
                         name={`${post.author.firstName} ${post.author.lastName}`}
+                        authorFirstName={post.author.firstName}
+                        authorLastName={post.author.lastName}
                         time={post.createdAt}
                         title={post.text}
                         postImage={post.image}
@@ -435,6 +438,8 @@ export default function FeedPage() {
                         visibility={post.visibility}
                         currentUserId={currentUser?._id}
                         currentUserAvatar={currentUser?.avatar}
+                        currentUserFirstName={currentUser?.firstName}
+                        currentUserLastName={currentUser?.lastName}
                         authorId={post.author._id}
                         onPostDeleted={handlePostDeleted}
                       />

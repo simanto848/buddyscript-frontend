@@ -6,6 +6,8 @@ import { useTheme } from './ThemeContext';
 import { useAxios } from '../../lib/api';
 import { logoutAction } from '../login/actions';
 
+import Avatar from './Avatar';
+
 interface UserInfo {
   firstName: string;
   lastName: string;
@@ -138,7 +140,7 @@ export default function Navbar() {
             
             <div className="_header_nav_profile" style={{ position: 'relative' }}>
               <div className="_header_nav_profile_image" style={{ cursor: 'pointer', width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', display: 'block', margin: '0 8px 0 0' }} onClick={() => setShowProfileDrop(!showProfileDrop)}>
-                <img src={displayAvatar} alt="Avatar" className="_nav_profile_img" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                <Avatar avatarUrl={currentUser?.avatar} firstName={currentUser?.firstName} lastName={currentUser?.lastName} size="38px" fontSize="13px" />
               </div>
               <div className="_header_nav_dropdown">
                 <p className="_header_nav_para" style={{ cursor: 'pointer' }} onClick={() => setShowProfileDrop(!showProfileDrop)}>{displayName}</p>
@@ -162,8 +164,8 @@ export default function Navbar() {
                   style={{ display: 'block', zIndex: 100 }}
                 >
                   <div className="_nav_profile_dropdown_info">
-                    <div className="_nav_profile_dropdown_image">
-                      <img src={displayAvatar} alt="Avatar" className="_nav_drop_img" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }} />
+                    <div className="_nav_profile_dropdown_image" style={{ width: '42px', height: '42px', borderRadius: '50%', overflow: 'hidden' }}>
+                      <Avatar avatarUrl={currentUser?.avatar} firstName={currentUser?.firstName} lastName={currentUser?.lastName} size="42px" fontSize="15px" />
                     </div>
                     <div className="_nav_profile_dropdown_info_txt">
                       <h4 className="_nav_dropdown_title">{displayName}</h4>

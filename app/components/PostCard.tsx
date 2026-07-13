@@ -6,6 +6,7 @@ import { useAxios } from '../../lib/api';
 import { formatTimeAgo } from '../../lib/time';
 import axios from 'axios';
 import { useTheme } from './ThemeContext';
+import Avatar from './Avatar';
 
 interface UserInfo {
   _id: string;
@@ -35,8 +36,10 @@ interface Comment {
 
 interface PostCardProps {
   postId: string;
-  avatar: string;
+  avatar?: string;
   name: string;
+  authorFirstName?: string;
+  authorLastName?: string;
   time: string;
   title: string;
   postImage?: string;
@@ -44,6 +47,8 @@ interface PostCardProps {
   visibility: string;
   currentUserId?: string;
   currentUserAvatar?: string;
+  currentUserFirstName?: string;
+  currentUserLastName?: string;
   authorId: string;
   onPostDeleted?: (deletedPostId: string) => void;
 }
@@ -52,6 +57,8 @@ export default function PostCard({
   postId,
   avatar,
   name,
+  authorFirstName,
+  authorLastName,
   time,
   title,
   postImage,
@@ -59,6 +66,8 @@ export default function PostCard({
   visibility,
   currentUserId,
   currentUserAvatar,
+  currentUserFirstName,
+  currentUserLastName,
   authorId,
   onPostDeleted
 }: PostCardProps) {
@@ -230,8 +239,8 @@ export default function PostCard({
       <div className="_feed_inner_timeline_content _padd_r24 _padd_l24">
         <div className="_feed_inner_timeline_post_top">
           <div className="_feed_inner_timeline_post_box">
-            <div className="_feed_inner_timeline_post_box_image">
-              <img src={avatar || '/images/profile.png'} alt={name} className="_post_img" style={{ width: '42px', height: '42px', borderRadius: '50%', objectFit: 'cover' }} />
+            <div className="_feed_inner_timeline_post_box_image" style={{ width: '42px', height: '42px', borderRadius: '50%', overflow: 'hidden' }}>
+              <Avatar avatarUrl={avatar} firstName={authorFirstName || name.split(' ')[0]} lastName={authorLastName || name.split(' ')[1]} size="42px" />
             </div>
             <div className="_feed_inner_timeline_post_box_txt">
               <h4 className="_feed_inner_timeline_post_box_title">{name}</h4>
@@ -490,8 +499,8 @@ export default function PostCard({
           <div className="_feed_inner_comment_box">
             <form className="_feed_inner_comment_box_form" onSubmit={handleCommentSubmit}>
               <div className="_feed_inner_comment_box_content">
-                <div className="_feed_inner_comment_box_content_image">
-                  <img src={currentUserAvatar || '/images/comment_img.png'} alt="" className="_comment_img" style={{ borderRadius: '50%', objectFit: 'cover' }} />
+                <div className="_feed_inner_comment_box_content_image" style={{ width: '32px', height: '32px' }}>
+                  <Avatar avatarUrl={currentUserAvatar} firstName={currentUserFirstName} lastName={currentUserLastName} size="32px" fontSize="11px" />
                 </div>
                 <div className="_feed_inner_comment_box_content_txt">
                   <textarea
@@ -532,12 +541,7 @@ export default function PostCard({
                     <div className="_comment_main">
                       <div className="_comment_image">
                         <Link href="#" className="_comment_image_link">
-                          <img
-                            src={comment.author.avatar || '/images/profile.png'}
-                            alt={comment.author.firstName}
-                            className="_comment_img1"
-                            style={{ borderRadius: '50%', objectFit: 'cover' }}
-                          />
+                          <Avatar avatarUrl={comment.author.avatar} firstName={comment.author.firstName} lastName={comment.author.lastName} size="32px" fontSize="11px" />
                         </Link>
                       </div>
                       <div className="_comment_area">
@@ -684,12 +688,7 @@ export default function PostCard({
                         <div className="_comment_main" key={reply._id} style={{ marginLeft: '45px', marginTop: '12px' }}>
                           <div className="_comment_image">
                             <Link href="#" className="_comment_image_link">
-                              <img
-                                src={reply.author.avatar || '/images/profile.png'}
-                                alt={reply.author.firstName}
-                                className="_comment_img1"
-                                style={{ borderRadius: '50%', objectFit: 'cover', width: '28px', height: '28px' }}
-                              />
+                              <Avatar avatarUrl={reply.author.avatar} firstName={reply.author.firstName} lastName={reply.author.lastName} size="28px" fontSize="10px" />
                             </Link>
                           </div>
                           <div className="_comment_area">
@@ -832,8 +831,8 @@ export default function PostCard({
                     <div className="_feed_inner_comment_box" style={{ marginLeft: '45px', marginTop: '12px' }}>
                       <form className="_feed_inner_comment_box_form" onSubmit={(e) => handleReplySubmit(comment._id, e)}>
                         <div className="_feed_inner_comment_box_content">
-                          <div className="_feed_inner_comment_box_content_image">
-                            <img src={currentUserAvatar || '/images/comment_img.png'} alt="" className="_comment_img" style={{ borderRadius: '50%', objectFit: 'cover', width: '28px', height: '28px' }} />
+                          <div className="_feed_inner_comment_box_content_image" style={{ width: '28px', height: '28px' }}>
+                            <Avatar avatarUrl={currentUserAvatar} firstName={currentUserFirstName} lastName={currentUserLastName} size="28px" fontSize="10px" />
                           </div>
                           <div className="_feed_inner_comment_box_content_txt">
                             <textarea
