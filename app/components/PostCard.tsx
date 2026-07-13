@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useAxios } from '../../lib/api';
 import { formatTimeAgo } from '../../lib/time';
 import axios from 'axios';
+import { useTheme } from './ThemeContext';
 
 interface UserInfo {
   _id: string;
@@ -61,9 +62,11 @@ export default function PostCard({
   authorId,
   onPostDeleted
 }: PostCardProps) {
+  const { darkMode } = useTheme();
   const [showDropdown, setShowDropdown] = useState(false);
   const [likes, setLikes] = useState<UserInfo[]>(likesList);
   const [showLikesHover, setShowLikesHover] = useState(false);
+  const [showLikesModal, setShowLikesModal] = useState(false);
   const [comments, setComments] = useState<Comment[]>([]);
   const [showComments, setShowComments] = useState(true);
   const [newComment, setNewComment] = useState('');
@@ -72,6 +75,7 @@ export default function PostCard({
   const [openCommentMenuId, setOpenCommentMenuId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedText, setEditedText] = useState(title);
+  const [editedVisibility, setEditedVisibility] = useState(visibility);
 
   const hasLiked = currentUserId ? likes.some(user => user._id === currentUserId) : false;
 
@@ -204,7 +208,7 @@ export default function PostCard({
     if (!editedText.trim()) return;
     try {
       const api = await useAxios();
-      const res: any = await api.put(`/posts/${postId}`, { text: editedText });
+      const res: any = await api.put(`/posts/${postId}`, { text: editedText, visibility: editedVisibility });
       if (res.success) {
         setIsEditing(false);
         window.location.reload();
@@ -344,7 +348,19 @@ export default function PostCard({
           </div>
         </div>
         {isEditing ? (
-          <div style={{ marginTop: '14px', marginBottom: '14px' }}>
+          <div style={{ marginTop: '14px', marginBottom: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontSize: '12px', fontWeight: 500 }}>Update Privacy:</span>
+              <select 
+                className="form-select form-select-sm" 
+                style={{ width: '100px', borderRadius: '20px', fontSize: '11px', height: '26px', border: '1px solid var(--border-color, #ccc)', background: 'var(--bg2)', color: 'var(--color6)' }}
+                value={editedVisibility}
+                onChange={(e) => setEditedVisibility(e.target.value)}
+              >
+                <option value="public">🌍 Public</option>
+                <option value="private">🔒 Private</option>
+              </select>
+            </div>
             <textarea
               className="form-control"
               value={editedText}
@@ -372,6 +388,7 @@ export default function PostCard({
           style={{ cursor: 'pointer' }}
           onMouseEnter={() => setShowLikesHover(true)}
           onMouseLeave={() => setShowLikesHover(false)}
+          onClick={() => setShowLikesModal(true)}
         >
           <img src="/images/react_img1.png" alt="React Icon" className="_react_img1" />
           <img src="/images/react_img2.png" alt="React Icon" className="_react_img" />
@@ -790,6 +807,67 @@ export default function PostCard({
               })}
             </div>
           )}
+        </div>
+      )}
+      {showLikesModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: darkMode ? '#1F2937' : '#fff',
+            color: darkMode ? '#fff' : '#000',
+            borderRadius: '12px',
+            padding: '24px',
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
+            position: 'relative'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', borderBottom: '1px solid #eee', paddingBottom: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>Reactions</h3>
+              <button 
+                onClick={() => setShowLikesModal(false)}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '24px',
+                  cursor: 'pointer',
+                  color: darkMode ? '#ccc' : '#666',
+                  lineHeight: 1
+                }}
+              >
+                &times;
+              </button>
+            </div>
+            <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              {likes.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>No reactions yet</div>
+              ) : (
+                likes.map((user) => (
+                  <div key={user._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
+                    <img 
+                      src={user.avatar || '/images/profile.png'} 
+                      alt={`${user.firstName} ${user.lastName}`} 
+                      style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover' }}
+                    />
+                    <span style={{ fontSize: '14px', fontWeight: '500' }}>
+                      {user.firstName} {user.lastName}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
