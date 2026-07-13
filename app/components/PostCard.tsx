@@ -67,6 +67,8 @@ export default function PostCard({
   const [likes, setLikes] = useState<UserInfo[]>(likesList);
   const [showLikesHover, setShowLikesHover] = useState(false);
   const [showLikesModal, setShowLikesModal] = useState(false);
+  const [modalLikes, setModalLikes] = useState<UserInfo[]>([]);
+  const [hoveredReactId, setHoveredReactId] = useState<string | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [showComments, setShowComments] = useState(true);
   const [newComment, setNewComment] = useState('');
@@ -389,7 +391,7 @@ export default function PostCard({
             style={{ cursor: 'pointer' }}
             onMouseEnter={() => setShowLikesHover(true)}
             onMouseLeave={() => setShowLikesHover(false)}
-            onClick={() => setShowLikesModal(true)}
+            onClick={() => { setModalLikes(likes); setShowLikesModal(true); }}
           >
             {likes.slice(0, 5).map((user, index) => {
               const isFirst = index === 0;
@@ -601,7 +603,13 @@ export default function PostCard({
                             </p>
                           </div>
                           {comment.likes.length > 0 && (
-                            <div className="_total_reactions" style={{ position: 'absolute', bottom: '-15px', right: '15px', zIndex: 10 }}>
+                            <div 
+                              className="_total_reactions" 
+                              style={{ position: 'absolute', bottom: '-15px', right: '15px', zIndex: 10, cursor: 'pointer' }}
+                              onClick={() => { setModalLikes(comment.likes); setShowLikesModal(true); }}
+                              onMouseEnter={() => setHoveredReactId(comment._id)}
+                              onMouseLeave={() => setHoveredReactId(null)}
+                            >
                               <div className="_total_react">
                                 <span className="_reaction_like">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-thumbs-up" style={{ color: '#377DFF' }}><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
@@ -613,6 +621,24 @@ export default function PostCard({
                               <span className="_total">
                                 {comment.likes.length}
                               </span>
+                              {hoveredReactId === comment._id && (
+                                <div style={{
+                                  position: 'absolute',
+                                  bottom: '22px',
+                                  right: '0px',
+                                  background: '#333',
+                                  color: '#fff',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '10px',
+                                  zIndex: 100,
+                                  minWidth: '100px',
+                                  whiteSpace: 'nowrap',
+                                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                }}>
+                                  {renderLikeTooltip(comment.likes)}
+                                </div>
+                              )}
                             </div>
                           )}
                           <div className="_comment_reply">
@@ -729,7 +755,13 @@ export default function PostCard({
                                 </p>
                               </div>
                               {reply.likes.length > 0 && (
-                                <div className="_total_reactions" style={{ position: 'absolute', bottom: '-15px', right: '15px', zIndex: 10 }}>
+                                <div 
+                                  className="_total_reactions" 
+                                  style={{ position: 'absolute', bottom: '-15px', right: '15px', zIndex: 10, cursor: 'pointer' }}
+                                  onClick={() => { setModalLikes(reply.likes); setShowLikesModal(true); }}
+                                  onMouseEnter={() => setHoveredReactId(reply._id)}
+                                  onMouseLeave={() => setHoveredReactId(null)}
+                                >
                                   <div className="_total_react">
                                     <span className="_reaction_like">
                                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-thumbs-up" style={{ color: '#377DFF' }}><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
@@ -741,6 +773,24 @@ export default function PostCard({
                                   <span className="_total" style={{ fontSize: '11px' }}>
                                     {reply.likes.length}
                                   </span>
+                                  {hoveredReactId === reply._id && (
+                                    <div style={{
+                                      position: 'absolute',
+                                      bottom: '22px',
+                                      right: '0px',
+                                      background: '#333',
+                                      color: '#fff',
+                                      padding: '4px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '10px',
+                                      zIndex: 100,
+                                      minWidth: '100px',
+                                      whiteSpace: 'nowrap',
+                                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
+                                    }}>
+                                      {renderLikeTooltip(reply.likes)}
+                                    </div>
+                                  )}
                                 </div>
                               )}
                               <div className="_comment_reply">
@@ -863,10 +913,10 @@ export default function PostCard({
               </button>
             </div>
             <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
-              {likes.length === 0 ? (
+              {modalLikes.length === 0 ? (
                 <div style={{ textAlign: 'center', padding: '20px', color: '#999' }}>No reactions yet</div>
               ) : (
-                likes.map((user) => (
+                modalLikes.map((user) => (
                   <div key={user._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
                     <img 
                       src={user.avatar || '/images/profile.png'} 
