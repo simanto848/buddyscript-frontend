@@ -42,6 +42,7 @@ interface PostCardProps {
   likesList: UserInfo[];
   visibility: string;
   currentUserId?: string;
+  authorId: string;
   onPostDeleted?: (deletedPostId: string) => void;
 }
 
@@ -55,6 +56,7 @@ export default function PostCard({
   likesList,
   visibility,
   currentUserId,
+  authorId,
   onPostDeleted
 }: PostCardProps) {
   const [showDropdown, setShowDropdown] = useState(false);
@@ -65,6 +67,8 @@ export default function PostCard({
   const [newComment, setNewComment] = useState('');
   const [replyTexts, setReplyTexts] = useState<Record<string, string>>({});
   const [activeReplyInput, setActiveReplyInput] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedText, setEditedText] = useState(title);
 
   const hasLiked = currentUserId ? likes.some(user => user._id === currentUserId) : false;
 
@@ -167,6 +171,20 @@ export default function PostCard({
     }
   };
 
+  const handleUpdatePost = async () => {
+    if (!editedText.trim()) return;
+    try {
+      const api = await useAxios();
+      const res: any = await api.put(`/posts/${postId}`, { text: editedText });
+      if (res.success) {
+        setIsEditing(false);
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Failed to update post:', error);
+    }
+  };
+
   const renderLikeTooltip = (likeUsers: UserInfo[]) => {
     if (likeUsers.length === 0) return 'No likes yet';
     return likeUsers.map(u => `${u.firstName} ${u.lastName}`).join(', ');
@@ -204,25 +222,115 @@ export default function PostCard({
             {showDropdown && (
               <div
                 className="_feed_timeline_dropdown _timeline_dropdown show"
-                style={{ display: 'block', position: 'absolute', right: 0, top: '25px', zIndex: 10 }}
+                style={{ 
+                  display: 'block', 
+                  position: 'absolute', 
+                  right: 0, 
+                  top: '25px', 
+                  zIndex: 10,
+                  transform: 'none',
+                  background: '#fff',
+                  boxShadow: '0px 10px 30px rgba(0, 0, 0, 0.1)',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  width: '280px'
+                }}
               >
-                <ul className="_feed_timeline_dropdown_list">
-                  <li className="_feed_timeline_dropdown_item">
-                    <button className="_feed_timeline_dropdown_link" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer' }} onClick={handleDeletePost}>
-                      <span style={{ marginRight: '8px' }}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 18 18">
-                          <path stroke="#FF4D4F" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.2" d="M2.25 4.5h13.5M6 4.5V3a1.5 1.5 0 011.5-1.5h3A1.5 1.5 0 0112 3v1.5m2.25 0v10.5a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5V4.5h10.5z"/>
+                <ul className="_feed_timeline_dropdown_list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                  
+                  {/* Save Post */}
+                  <li className="_feed_timeline_dropdown_item" style={{ marginBottom: '12px' }}>
+                    <button type="button" className="_feed_timeline_dropdown_link" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 4px', fontSize: '14px', fontWeight: 500, color: '#333' }} onClick={() => setShowDropdown(false)}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#EBF2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#377DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
                         </svg>
-                      </span>
-                      Delete Post
+                      </div>
+                      Save Post
                     </button>
                   </li>
+
+                  {/* Turn On Notification */}
+                  <li className="_feed_timeline_dropdown_item" style={{ marginBottom: '12px' }}>
+                    <button type="button" className="_feed_timeline_dropdown_link" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 4px', fontSize: '14px', fontWeight: 500, color: '#333' }} onClick={() => setShowDropdown(false)}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#EBF2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#377DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                          <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                      </div>
+                      Turn On Notification
+                    </button>
+                  </li>
+
+                  {/* Hide */}
+                  <li className="_feed_timeline_dropdown_item" style={{ marginBottom: (currentUserId === authorId) ? '12px' : '0px' }}>
+                    <button type="button" className="_feed_timeline_dropdown_link" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 4px', fontSize: '14px', fontWeight: 500, color: '#333' }} onClick={() => setShowDropdown(false)}>
+                      <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#EBF2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#377DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <line x1="9" y1="9" x2="15" y2="15" />
+                          <line x1="15" y1="9" x2="9" y2="15" />
+                        </svg>
+                      </div>
+                      Hide
+                    </button>
+                  </li>
+
+                  {/* Edit Post (Author only) */}
+                  {(currentUserId === authorId) && (
+                    <li className="_feed_timeline_dropdown_item" style={{ marginBottom: '12px' }}>
+                      <button type="button" className="_feed_timeline_dropdown_link" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 4px', fontSize: '14px', fontWeight: 500, color: '#333' }} onClick={() => { setIsEditing(true); setShowDropdown(false); }}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#EBF2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#377DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                          </svg>
+                        </div>
+                        Edit Post
+                      </button>
+                    </li>
+                  )}
+
+                  {/* Delete Post (Author only) */}
+                  {(currentUserId === authorId) && (
+                    <li className="_feed_timeline_dropdown_item">
+                      <button type="button" className="_feed_timeline_dropdown_link" style={{ background: 'none', border: 'none', width: '100%', textAlign: 'left', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 4px', fontSize: '14px', fontWeight: 500, color: '#333' }} onClick={handleDeletePost}>
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#EBF2FE', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#377DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            <line x1="10" y1="11" x2="10" y2="17" />
+                            <line x1="14" y1="11" x2="14" y2="17" />
+                          </svg>
+                        </div>
+                        Delete Post
+                      </button>
+                    </li>
+                  )}
+
                 </ul>
               </div>
             )}
           </div>
         </div>
-        <h4 className="_feed_inner_timeline_post_title" style={{ fontWeight: 'normal', whiteSpace: 'pre-wrap' }}>{title}</h4>
+        {isEditing ? (
+          <div style={{ marginTop: '14px', marginBottom: '14px' }}>
+            <textarea
+              className="form-control"
+              value={editedText}
+              onChange={(e) => setEditedText(e.target.value)}
+              rows={3}
+              style={{ background: 'var(--bg2)', color: 'var(--color6)', border: '1px solid var(--border-color, #ccc)' }}
+            />
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px', justifyContent: 'flex-end' }}>
+              <button className="btn btn-secondary btn-sm" onClick={() => setIsEditing(false)}>Cancel</button>
+              <button className="btn btn-primary btn-sm" onClick={handleUpdatePost}>Save</button>
+            </div>
+          </div>
+        ) : (
+          <h4 className="_feed_inner_timeline_post_title" style={{ fontWeight: 'normal', whiteSpace: 'pre-wrap' }}>{title}</h4>
+        )}
         {postImage && (
           <div className="_feed_inner_timeline_image" style={{ marginTop: '14px' }}>
             <img src={postImage} alt="Post media" className="_time_img" style={{ width: '100%', borderRadius: '6px', maxHeight: '500px', objectFit: 'cover' }} />

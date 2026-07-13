@@ -419,6 +419,7 @@ export default function FeedPage() {
                         likesList={post.likes}
                         visibility={post.visibility}
                         currentUserId={currentUser?._id}
+                        authorId={post.author._id}
                         onPostDeleted={handlePostDeleted}
                       />
                     ))}
