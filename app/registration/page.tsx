@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import AuthLayout from '../components/AuthLayout';
 import InputField from '../components/InputField';
 import { registerAction } from './actions';
+import { googleLoginAction } from '../login/actions';
 
 export default function RegistrationPage() {
   const [firstName, setFirstName] = useState('');
@@ -17,6 +18,56 @@ export default function RegistrationPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  useEffect(() => {
+    // Load Google Identity Services client script
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
+  const handleGoogleLogin = () => {
+    if (typeof window === 'undefined' || !(window as any).google) {
+      setError('Google Sign-In is still loading. Please try again in a moment.');
+      return;
+    }
+
+    const google = (window as any).google;
+    const client = google.accounts.oauth2.initTokenClient({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '529638142981323-doxwcoxl5.apps.googleusercontent.com',
+      scope: 'email profile openid',
+      ux_mode: 'popup',
+      callback: async (response: any) => {
+        if (response.error) {
+          setError('Google authentication failed.');
+          return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+          const res = await googleLoginAction({ accessToken: response.access_token });
+          if (!res.success) {
+            setError(res.error || 'Google registration/login failed.');
+          } else {
+            router.push('/');
+            router.refresh();
+          }
+        } catch (err: any) {
+          setError(err?.message || 'Something went wrong during Google Login.');
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+
+    client.requestAccessToken();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,7 +109,13 @@ export default function RegistrationPage() {
         </div>
         <p className="_social_registration_content_para _mar_b8">Get Started Now</p>
         <h4 className="_social_registration_content_title _titl4 _mar_b50">Registration</h4>
-        <button type="button" className="_social_registration_content_btn _mar_b40">
+        <button 
+          type="button" 
+          className="_social_registration_content_btn _mar_b40"
+          onClick={handleGoogleLogin}
+          disabled={loading}
+          style={{ cursor: loading ? 'not-allowed' : 'pointer' }}
+        >
           <img src="/images/google.svg" alt="Image" className="_google_img" /> <span>Register with google</span>
         </button>
         <div className="_social_registration_content_bottom_txt _mar_b40">
