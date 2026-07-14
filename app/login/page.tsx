@@ -163,17 +163,24 @@ export default function LoginPage() {
                   type="submit" 
                   className="_social_login_form_btn_link _btn1" 
                   disabled={loading}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                  style={{ whiteSpace: 'nowrap' }}
                 >
+                  Login now
                   {loading && (
                     <span 
                       className="spinner-border spinner-border-sm" 
                       role="status" 
                       aria-hidden="true" 
-                      style={{ width: '16px', height: '16px', border: '2px solid', borderRightColor: 'transparent' }}
+                      style={{ 
+                        width: '1em', 
+                        height: '1em', 
+                        borderWidth: '0.15em', 
+                        marginLeft: '8px', 
+                        display: 'inline-block',
+                        verticalAlign: 'text-bottom'
+                      }}
                     />
                   )}
-                  <span>Login now</span>
                 </button>
               </div>
             </div>
