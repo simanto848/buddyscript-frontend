@@ -11,7 +11,7 @@ export async function registerAction(payload: any) {
 
     const cookieStore = await cookies();
     cookieStore.set('token', data.data.token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60,
