@@ -201,8 +201,21 @@ export default function RegistrationPage() {
           <div className="row">
             <div className="col-lg-12 col-md-12 col-xl-12 col-sm-12">
               <div className="_social_registration_form_btn _mar_t40 _mar_b60">
-                <button type="submit" className="_social_registration_form_btn_link _btn1" disabled={loading}>
-                  {loading ? 'Registering...' : 'Register now'}
+                <button 
+                  type="submit" 
+                  className="_social_registration_form_btn_link _btn1" 
+                  disabled={loading}
+                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  {loading && (
+                    <span 
+                      className="spinner-border spinner-border-sm" 
+                      role="status" 
+                      aria-hidden="true" 
+                      style={{ width: '16px', height: '16px', border: '2px solid', borderRightColor: 'transparent' }}
+                    />
+                  )}
+                  <span>Register now</span>
                 </button>
               </div>
             </div>
