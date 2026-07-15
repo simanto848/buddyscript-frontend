@@ -1,36 +1,104 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Next.js Client Frontend Documentation
 
-## Getting Started
+This directory contains the user interface of the Social Feed / Blog application, built using Next.js 16 (App Router), React 19, TypeScript, and styled with Tailwind CSS v4.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🏗️ Folder Structure
+
+The frontend code follows Next.js App Router conventions:
+
+```
+client/
+├── app/
+│   ├── components/       # Core UI and state management components
+│   │   ├── AuthLayout.tsx    # Left side/Right side split screen template for authentication
+│   │   ├── Avatar.tsx        # Fallback profile icon and status avatar
+│   │   ├── InputField.tsx    # Styled and accessible text input wrapper
+│   │   ├── Navbar.tsx        # Top navigation layout containing user profiles, theme toggles, and searching UI
+│   │   ├── PostCard.tsx      # Main card rendering posts, edit forms, likes, sharing, and replies
+│   │   ├── SidebarLeft.tsx   # Left sidebar for navigation and user profiles
+│   │   ├── SidebarRight.tsx  # Right sidebar with sponsored section and suggested users
+│   │   └── ThemeContext.tsx  # Global light/dark theme state provider
+│   │
+│   ├── login/            # Page controller for the Login screen (`/login`)
+│   │   └── page.tsx
+│   ├── registration/     # Page controller for the Sign-Up screen (`/registration`)
+│   │   └── page.tsx
+│   │
+│   ├── globals.css       # Main stylesheet initializing Tailwind CSS v4 variables
+│   ├── layout.tsx        # Root HTML wrapper importing Poppins web-fonts and ThemeProvider
+│   ├── middleware.ts     # Client-side router authentication guard
+│   └── page.tsx          # Main dashboard social feed screen (`/`)
+│
+├── lib/                  # Frontend utilities
+│   ├── api.ts            # Axios interceptor config with support for Node SSR cookies and multipart uploads
+│   └── time.ts           # Timestamps and post creation age formatter
+│
+├── .env.local            # Local dev environmental overrides
+├── next.config.ts        # Next.js bundler settings
+├── tsconfig.json         # TypeScript configurations
+└── package.json          # Dependency packages and script mappings
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🛠️ Setup & Installation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Requirements
+- **Node.js**: v18.0.0 or higher
+- **npm** or **Yarn**
 
-## Learn More
+### Installation Steps
 
-To learn more about Next.js, take a look at the following resources:
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Configure Environment variables**:
+   Create a `.env.local` file at the root of the `client/` folder:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:5001/api
+   NEXT_PUBLIC_GOOGLE_CLIENT_ID=your_google_oauth_client_id.apps.googleusercontent.com
+   ```
+   *Note: Make sure the `NEXT_PUBLIC_GOOGLE_CLIENT_ID` matches the configuration on the backend.*
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. **Run the Development Server**:
+   ```bash
+   npm run dev
+   ```
+   Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploy on Vercel
+4. **Build for Production**:
+   ```bash
+   npm run build
+   npm run start
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🛡️ Authentication Router Guard
+
+The application contains a Next.js `middleware.ts` file situated at the client root. It intercepts routing requests to verify authentication:
+- Checks the `token` cookie directly.
+- **Anonymous Users**: Attempting to load `/` or secure screens will be automatically redirected to `/login`.
+- **Authenticated Users**: Attempting to load `/login` or `/registration` will be redirected back to the `/` feed page.
+- Excludes static resources (`/_next`, `/images`, etc.) and internal APIs to avoid routing loop errors.
+
+---
+
+## 🛰️ Axios API Client (`lib/api.ts`)
+
+The `useAxios()` utility creates a customized Axios instance for request sending:
+- **Server-Side Rendered (SSR) support**: It detects whether it's executing in a browser environment or Node.js server context. If SSR, it imports cookies directly from `next/headers` to attach session authorizations.
+- **Credentials Handling**: Configured with `withCredentials: true` to ensure JWT cookies are correctly received and sent.
+- **Multipart support**: Integrates a request interceptor that removes default JSON Headers when a payload inherits a `FormData` block (crucial for files/image uploads).
+
+---
+
+## 🎨 Theme & Typography
+
+- **Font Family**: Uses the Google **Poppins** typeface family (weights 100 to 800), loaded efficiently via Next.js `next/font/google` optimizations.
+- **Dark/Light Mode**: Governed by the `ThemeContext.tsx` provider, which toggles the `dark` class on the root `<html>` element. Styles change automatically using Tailwind's native selector utilities (e.g. `dark:bg-slate-900`). The chosen theme is persisted locally in the browser storage (`localStorage`).
+- **Styling Framework**: Designed with Tailwind CSS v4, which defines variables inside `app/globals.css`.
