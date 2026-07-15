@@ -15,6 +15,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // Check if token exists in cookie client-side
+    const match = document.cookie.match(/(^|;)\s*token\s*=\s*([^;]+)/);
+    if (match) {
+      router.push('/');
+      return;
+    }
+
     // Load Google Identity Services client script
     const script = document.createElement('script');
     script.src = 'https://accounts.google.com/gsi/client';
@@ -25,7 +32,7 @@ export default function LoginPage() {
     return () => {
       document.body.removeChild(script);
     };
-  }, []);
+  }, [router]);
 
   const handleGoogleLogin = () => {
     if (typeof window === 'undefined' || !(window as any).google) {
